@@ -15,13 +15,16 @@ class LLMGenerator:
         self.temperature = temperature
         self._client = None
 
-    def _get_client(self):
-        if self._client is None:
+    def _get_client(self, system_instruction: Optional[str] = None):
+        if self._client is None or system_instruction is not None:
             try:
                 from vertexai.generative_models import GenerativeModel
                 import vertexai
                 vertexai.init()
-                self._client = GenerativeModel(self.model)
+                self._client = GenerativeModel(
+                    self.model,
+                    system_instruction=system_instruction,
+                )
             except ImportError:
                 raise ImportError("vertexai not installed. Run: pip install google-cloud-aiplatform")
         return self._client
@@ -33,10 +36,12 @@ class LLMGenerator:
         system_prompt: Optional[str] = None,
     ) -> GenerationResult:
         if system_prompt is None:
-            system_prompt = """You are an insurance knowledge assistant. 
-Answer questions based on the provided context. 
-If the context doesn't contain enough information, say so clearly.
-Always cite your sources when possible."""
+            system_prompt = """You are an insurance knowledge assistant.
+Answer questions based ONLY on the provided context below.
+- If the context is EMPTY or does NOT contain enough information to answer,
+  say so clearly. Do NOT use outside knowledge or guess.
+- Base your answer strictly on the given context.
+- Cite your sources when possible."""
 
         context_text = "\n\n".join([f"Source {i+1}:\n{ctx}" for i, ctx in enumerate(context)])
         prompt = f"""Context:
@@ -46,7 +51,7 @@ Question: {query}
 
 Answer:"""
 
-        client = self._get_client()
+        client = self._get_client(system_prompt)
         response = client.generate_content(
             prompt,
             generation_config={
