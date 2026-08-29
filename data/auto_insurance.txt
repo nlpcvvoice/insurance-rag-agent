@@ -1,0 +1,30 @@
+# Auto Insurance Guide
+
+## Overview
+
+Auto insurance is a contract between a policyholder and an insurance company that provides financial protection against physical damage and bodily injury resulting from traffic collisions, theft, and other incidents. Most states require a minimum level of auto insurance to legally drive.
+
+## Core Coverages
+
+### Liability Coverage
+Liability coverage pays for damage and injuries you cause to others. It is mandatory in most states and is typically expressed as three numbers, such as 25/50/25, representing bodily injury per person, bodily injury per accident, and property damage in thousands of dollars.
+
+### Collision Coverage
+Collision coverage pays to repair or replace your vehicle if it is damaged in a collision with another vehicle or object, regardless of who is at fault.
+
+### Comprehensive Coverage
+Comprehensive coverage protects against non-collision events such as theft, vandalism, fire, hail, flood, animal strikes, and falling objects.
+
+### Personal Injury Protection (PIP)
+Also known as no-fault coverage, PIP covers medical expenses, lost wages, and other costs for you and your passengers regardless of who caused the accident. It is required in no-fault states.
+
+### Uninsured/Underinsured Motorist Coverage
+This coverage protects you if you are hit by a driver who has no insurance or insufficient insurance to cover your damages.
+
+## Factors Affecting Premiums
+
+Premiums are influenced by driving record, age, gender, location, vehicle type, credit history, annual mileage, and coverage deductibles. Safe driving discounts, multi-policy discounts, and good student discounts can lower premiums.
+
+## Filing a Claim
+
+To file an auto claim, gather information at the accident scene including photos, contact and insurance details of all parties, and a police report for significant accidents. Report the claim to your insurer promptly, and cooperate with the claims adjuster during the damage inspection.

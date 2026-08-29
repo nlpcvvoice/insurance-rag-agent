@@ -4,9 +4,10 @@ from src.config import load_config, Config
 
 def test_config_loads():
     config = load_config()
-    assert config.llm.model == "gemini-1.5-flash"
+    assert config.llm.model == "gemini-2.5-flash"
     assert config.rag.chunk_size == 512
     assert config.vectorstore.provider == "chromadb"
+    assert config.embedding.provider == "local"
 
 
 def test_document_loader():

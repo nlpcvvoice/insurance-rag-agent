@@ -1,0 +1,40 @@
+# Life Insurance Fundamentals
+
+## What Is Life Insurance?
+
+Life insurance is a contract between a policyholder and an insurer in which the insurer promises to pay a designated beneficiary a sum of money upon the death of the insured person, in exchange for premium payments. It provides financial protection for loved ones.
+
+## Types of Life Insurance
+
+### Term Life Insurance
+Term life insurance provides coverage for a specified period, such as 10, 20, or 30 years. It is generally more affordable and does not build cash value. Beneficiaries receive the death benefit if the insured dies during the term.
+
+### Whole Life Insurance
+Whole life insurance provides lifelong coverage and includes a cash value component that grows over time on a tax-deferred basis. Premiums are fixed and typically higher than term life insurance.
+
+### Universal Life Insurance
+Universal life insurance offers flexible premiums and death benefits. The cash value earns interest based on current rates, providing more flexibility than whole life but also more complexity.
+
+### Variable Life Insurance
+Variable life insurance allows the policyholder to allocate cash value among investment sub-accounts. The death benefit and cash value may fluctuate based on the performance of these investments.
+
+## Key Terminology
+
+### Death Benefit
+The amount paid to the beneficiary upon the insured's death.
+### Premium
+The amount paid by the policyholder to maintain coverage, which can be paid monthly, quarterly, or annually.
+### Cash Value
+The savings component of a permanent life insurance policy that can be borrowed against or withdrawn.
+### Beneficiary
+The person or entity designated to receive the death benefit.
+### Policyholder
+The person who owns the policy and is responsible for premium payments.
+
+## How Much Coverage Do You Need?
+
+A common rule of thumb is to have coverage equal to 10 to 15 times your annual income. Factors to consider include outstanding debts, mortgage, children's education costs, dependents' living expenses, and final expenses.
+
+## Claims Process
+
+To file a life insurance claim, the beneficiary submits a claim form along with a certified copy of the death certificate to the insurer. Claims are typically paid within 30 to 60 days after all required documents are received.
