@@ -40,8 +40,8 @@ class DocumentLoader:
 
     def _load_pdf(self, path: Path) -> List[Document]:
         try:
-            import fitz  # PyMuPDF
-            doc = fitz.open(str(path))
+            import pymupdf
+            doc = pymupdf.open(str(path))
             content = ""
             for page in doc:
                 content += page.get_text()
@@ -55,6 +55,41 @@ class DocumentLoader:
                 content=chunk,
                 metadata={"source": str(path), "chunk_index": i},
                 source=str(path),
+            )
+            for i, chunk in enumerate(chunks)
+        ]
+
+    def load_bytes(self, filename: str, content: bytes, source: str = "") -> List[Document]:
+        """Load a document from in-memory bytes (e.g. an uploaded file)."""
+        path = Path(filename)
+        if not source:
+            source = filename
+        if path.suffix == ".txt":
+            try:
+                text = content.decode("utf-8")
+            except UnicodeDecodeError:
+                raise ValueError("TXT file must be UTF-8 encoded")
+            chunks = self._split_text(text)
+        elif path.suffix == ".pdf":
+            try:
+                import pymupdf
+                import io
+                doc = pymupdf.open(stream=content, filetype="pdf")
+                text = ""
+                for page in doc:
+                    text += page.get_text()
+                doc.close()
+            except ImportError:
+                raise ImportError("PyMuPDF not installed. Run: pip install PyMuPDF")
+            chunks = self._split_text(text)
+        else:
+            raise ValueError(f"Unsupported file type: {path.suffix}")
+
+        return [
+            Document(
+                content=chunk,
+                metadata={"source": source, "chunk_index": i},
+                source=source,
             )
             for i, chunk in enumerate(chunks)
         ]

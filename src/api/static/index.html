@@ -30,6 +30,26 @@
     border-radius: 20px;
     font-size: 12px;
   }
+  .upload-btn {
+    background: rgba(255,255,255,.15);
+    color: #fff;
+    border: 1px dashed rgba(255,255,255,.6);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background .2s;
+    margin-right: 8px;
+  }
+  .upload-btn:hover { background: rgba(255,255,255,.28); }
+  .upload-status {
+    text-align: center;
+    font-size: 12px;
+    padding: 6px 0;
+    color: #57606a;
+  }
+  .upload-status.ok { color: #1a7f37; }
+  .upload-status.err { color: #c0392b; }
   main {
     flex: 1;
     overflow-y: auto;
@@ -143,7 +163,11 @@
     <h1>🛡️ Insurance Knowledge Assistant</h1>
     <div class="sub">RAG + Gemini · Local Vector Store</div>
   </div>
-  <div class="badge">RAG Retrieval</div>
+  <div>
+    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">📤 Upload Document (.txt / .pdf)</button>
+    <input type="file" id="fileInput" accept=".txt,.pdf" style="display:none" onchange="uploadFile(event)">
+    <span class="badge">RAG Retrieval</span>
+  </div>
 </header>
 
 <main id="chat">
@@ -162,6 +186,7 @@
     <button id="send" onclick="send()">Send</button>
   </div>
 </footer>
+<div id="uploadStatus" class="upload-status"></div>
 
 <script>
   const chat = document.getElementById('chat');
@@ -232,6 +257,37 @@
   }
 
   function send() { ask(input.value); }
+
+  function setUploadStatus(msg, type) {
+    const el = document.getElementById('uploadStatus');
+    el.textContent = msg;
+    el.className = 'upload-status ' + (type || '');
+  }
+
+  async function uploadFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const ext = '.' + file.name.split('.').pop().toLowerCase();
+    if (ext !== '.txt' && ext !== '.pdf') {
+      setUploadStatus('Unsupported file type. Only .txt and .pdf allowed.', 'err');
+      event.target.value = '';
+      return;
+    }
+    setUploadStatus('Uploading ' + file.name + '...');
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await fetch('upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Upload failed');
+      setUploadStatus('✅ ' + data.message + ' (' + data.num_chunks + ' chunk(s), ' +
+                      data.documents_count + ' docs total)', 'ok');
+    } catch (e) {
+      setUploadStatus('Error: ' + e.message, 'err');
+    } finally {
+      event.target.value = '';
+    }
+  }
 
   function onKey(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
