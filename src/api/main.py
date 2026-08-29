@@ -1,7 +1,9 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional
 import uvicorn
+from pathlib import Path
 
 from src.config import load_config
 from src.rag.ingestion import DocumentLoader
@@ -57,7 +59,8 @@ class IngestResponse(BaseModel):
 
 @app.get("/")
 def root():
-    return {"message": "Insurance Knowledge Assistant API"}
+    html_path = Path(__file__).parent / "static" / "index.html"
+    return FileResponse(html_path)
 
 
 @app.get("/health")
