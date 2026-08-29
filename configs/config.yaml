@@ -1,0 +1,43 @@
+# Insurance Knowledge Assistant Configuration
+
+# LLM Settings
+llm:
+  provider: vertexai
+  model: gemini-1.5-flash
+  temperature: 0.3
+  max_tokens: 1024
+
+# Embedding Settings
+embedding:
+  provider: vertexai
+  model: text-embedding-004
+  dimension: 768
+
+# RAG Settings
+rag:
+  chunk_size: 512
+  chunk_overlap: 50
+  top_k: 5
+  similarity_threshold: 0.7
+
+# Vector Store Settings
+vectorstore:
+  provider: chromadb
+  collection_name: insurance_docs
+  persist_dir: ./data/chroma_db
+
+# API Settings
+api:
+  host: 0.0.0.0
+  port: 8000
+  workers: 1
+
+# MLOps Settings
+mlops:
+  tracking_uri: ./mlruns
+  experiment_name: insurance-knowledge-assistant
+
+# Logging
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
