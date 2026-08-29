@@ -1,0 +1,41 @@
+# Insurance Claims Handling Best Practices
+
+## Overview
+
+Effective claims handling balances fast, fair resolution with fraud prevention and regulatory compliance. A well-managed claims process improves customer satisfaction, reduces litigation risk, and protects the insurer's loss ratio.
+
+## First Notice of Loss (FNOL)
+
+### Initial Contact
+The claims process begins with First Notice of Loss, when the policyholder reports the loss. Insurers should capture key information accurately and empathetically, including policy number, incident details, date, location, and involved parties.
+
+### Immediate Priorities
+For auto accidents, prioritize safety and verify whether injuries occurred. For property claims, instruct the policyholder on temporary mitigation to prevent further damage, such as covering a damaged roof.
+
+## Investigation and Documentation
+
+### Evidence Gathering
+The claims adjuster investigates the claim by reviewing the policy, interviewing the policyholder and witnesses, inspecting the damage, obtaining police reports, and collecting estimates from contractors or repair shops.
+
+### Subrogation Assessment
+Adjusters identify whether a third party is liable so the insurer can pursue subrogation, recovering claim payments from the responsible party's insurer.
+
+## Coverage Determination
+
+Adjusters determine whether the loss is covered by reviewing policy language, exclusions, and endorsements. Coverage denials must be communicated clearly with specific policy language cited as the basis.
+
+## Settlement
+
+### Payment Process
+Once coverage is confirmed, the insurer issues a settlement based on the actual cash value or replacement cost, depending on the policy. Depreciation is applied to actual cash value settlements.
+
+### Timely Resolution
+Regulatory standards, such as unfair claims practices acts, require insurers to acknowledge claims promptly and respond within specific timeframes. Delays can lead to regulatory penalties and bad faith litigation.
+
+## Fraud Detection
+
+Red flags include inconsistent accounts of the incident, staged accidents, excessive medical treatment, and claims filed suspiciously soon after the policy becomes effective. Investigators use predictive analytics and data models to flag high-risk claims for review.
+
+## Customer Communication
+
+Keep the policyholder informed at each stage of the claims process. Clear, proactive communication reduces anxiety, improves satisfaction scores, and lowers the likelihood of complaints or litigation.

@@ -13,14 +13,20 @@ class EmbeddingProvider(ABC):
 
 
 class VertexAIEmbeddings(EmbeddingProvider):
-    def __init__(self, model: str = "text-embedding-004", location: str = "us-central1"):
+    def __init__(self, model: str = "gemini-embedding-001", location: str = "us-central1", project: str = None):
         self.model = model
         self.location = location
+        self.project = project
         self._client = None
 
     def _get_client(self):
         if self._client is None:
             try:
+                import vertexai
+                if self.project:
+                    vertexai.init(project=self.project, location=self.location)
+                else:
+                    vertexai.init(location=self.location)
                 from vertexai.language_models import TextEmbeddingModel
                 self._client = TextEmbeddingModel.from_pretrained(self.model)
             except ImportError:

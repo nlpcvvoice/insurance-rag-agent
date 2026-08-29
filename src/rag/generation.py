@@ -10,7 +10,7 @@ class GenerationResult:
 
 
 class LLMGenerator:
-    def __init__(self, model: str = "gemini-1.5-flash", temperature: float = 0.3):
+    def __init__(self, model: str = "gemini-2.5-flash", temperature: float = 0.3):
         self.model = model
         self.temperature = temperature
         self._client = None

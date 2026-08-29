@@ -7,7 +7,7 @@ from typing import Optional
 @dataclass
 class LLMConfig:
     provider: str = "vertexai"
-    model: str = "gemini-1.5-flash"
+    model: str = "gemini-2.5-flash"
     temperature: float = 0.3
     max_tokens: int = 1024
 
@@ -17,7 +17,7 @@ class RAGConfig:
     chunk_size: int = 512
     chunk_overlap: int = 50
     top_k: int = 5
-    similarity_threshold: float = 0.7
+    similarity_threshold: float = 0.4
 
 
 @dataclass
@@ -29,9 +29,9 @@ class VectorStoreConfig:
 
 @dataclass
 class EmbeddingConfig:
-    provider: str = "vertexai"
-    model: str = "text-embedding-004"
-    dimension: int = 768
+    provider: str = "local"
+    model: str = "all-MiniLM-L6-v2"
+    dimension: int = 384
 
 
 @dataclass
