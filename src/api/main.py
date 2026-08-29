@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional
@@ -10,6 +10,8 @@ from src.rag.ingestion import DocumentLoader
 from src.rag.embedding import get_embedding_provider
 from src.rag.retrieval import VectorStore
 from src.rag.generation import LLMGenerator
+
+MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5 MB
 
 
 app = FastAPI(
@@ -48,13 +50,10 @@ class QueryResponse(BaseModel):
     model: str
 
 
-class IngestRequest(BaseModel):
-    file_path: str
-
-
 class IngestResponse(BaseModel):
     message: str
     num_chunks: int
+    documents_count: int
 
 
 @app.get("/")
@@ -69,23 +68,42 @@ def health():
     return {"status": "healthy", "documents": stats["count"]}
 
 
-@app.post("/ingest", response_model=IngestResponse)
-def ingest_document(request: IngestRequest):
+@app.post("/upload", response_model=IngestResponse)
+async def upload_document(file: UploadFile = File(...)):
+    filename = file.filename or "document"
+    suffix = Path(filename).suffix.lower()
+    allowed = {".txt", ".pdf"}
+    if suffix not in allowed:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file type '{suffix}'. Allowed: {', '.join(sorted(allowed))}",
+        )
+
+    content = await file.read()
+    if len(content) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large ({(len(content)//1024)} KB). Max {MAX_UPLOAD_BYTES//1024//1024} MB.",
+        )
+
     try:
-        documents = loader.load_file(request.file_path)
+        documents = loader.load_bytes(filename=filename, content=content)
         contents = [doc.content for doc in documents]
         embeddings = embedding_provider.embed_texts(contents)
 
         doc_dicts = [
-            {"content": doc.content, "metadata": doc.metadata, "source": doc.source}
+            {"content": doc.content, "metadata": doc.metadata}
             for doc in documents
         ]
         vector_store.add_documents(doc_dicts, embeddings)
 
         return IngestResponse(
-            message=f"Successfully ingested {request.file_path}",
+            message=f"Successfully uploaded '{filename}'",
             num_chunks=len(documents),
+            documents_count=vector_store.get_collection_stats()["count"],
         )
+    except (ValueError, ImportError) as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

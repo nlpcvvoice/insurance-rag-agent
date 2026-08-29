@@ -24,11 +24,17 @@ class VectorStore:
         )
 
     def add_documents(self, documents: List[dict], embeddings: List[List[float]]):
+        ids = []
+        for i, doc in enumerate(documents):
+            meta = doc.get("metadata", {})
+            source = str(meta.get("source", "unknown"))
+            chunk = meta.get("chunk_index", i)
+            ids.append(f"{source}::chunk_{chunk}")
         self.collection.add(
             documents=[doc["content"] for doc in documents],
             embeddings=embeddings,
             metadatas=[doc["metadata"] for doc in documents],
-            ids=[f"doc_{i}" for i in range(len(documents))],
+            ids=ids,
         )
 
     def search(
