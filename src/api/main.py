@@ -140,11 +140,24 @@ def query(request: QueryRequest):
     start = time.perf_counter()
     try:
         query_embedding = embedding_provider.embed_query(request.query)
-        results = vector_store.search(
-            query_embedding=query_embedding,
-            top_k=request.top_k if request.top_k else config.rag.top_k,
-            threshold=config.rag.similarity_threshold,
-        )
+        top_k = request.top_k if request.top_k else config.rag.top_k
+        if config.rag.retrieval_mode == "hybrid":
+            results = vector_store.search_hybrid(
+                query=request.query,
+                query_embedding=query_embedding,
+                top_k=top_k,
+                threshold=config.rag.similarity_threshold,
+                keyword_top_k=config.rag.keyword_top_k,
+                rrf_k=config.rag.rrf_k,
+                rerank=config.rag.rerank,
+                reranker_top_k=config.rag.reranker_top_k,
+            )
+        else:
+            results = vector_store.search(
+                query_embedding=query_embedding,
+                top_k=top_k,
+                threshold=config.rag.similarity_threshold,
+            )
 
         contexts = [result.content for result in results]
         generation_result = generator.generate(

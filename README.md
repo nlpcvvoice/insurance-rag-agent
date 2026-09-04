@@ -152,7 +152,7 @@ curl -X POST http://localhost:8000/query \
 - [x] LLM-as-judge with auto-rotation
 - [x] MLflow experiment tracking
 - [x] Hybrid retrieval (BM25 + dense + RRF)
-- [ ] Cross-encoder reranker
+- [x] Cross-encoder reranker
 - [ ] Citation grounding (real source references)
 - [ ] DeepEval integration (agent/tool-call eval)
 - [ ] PII masking + prompt-injection guardrails (insurance compliance)

@@ -60,6 +60,7 @@ class VectorStore:
             metadata={"hnsw:space": "cosine"},
         )
         self._bm25 = None
+        self._reranker = None
 
     def add_documents(self, documents: List[dict], embeddings: List[List[float]]):
         ids = []
@@ -118,14 +119,20 @@ class VectorStore:
         threshold: float = 0.7,
         keyword_top_k: int = 10,
         rrf_k: int = 60,
+        rerank: bool = False,
+        reranker_top_k: int = 10,
     ) -> List[RetrievalResult]:
-        """Hybrid retrieval: BM25 keyword + dense vector, fused with Reciprocal Rank Fusion."""
-        dense = self.search(query_embedding, top_k=top_k, threshold=threshold)
+        """Hybrid retrieval: BM25 keyword + dense vector fused with RRF, optionally re-ranked.
+
+        With rerank=True, the fused top-reranker_top_k candidates are re-ranked by a
+        cross-encoder before trimming to the final top_k.
+        """
+        dense = self.search(query_embedding, top_k=reranker_top_k if rerank else top_k, threshold=threshold)
 
         bm25 = self._ensure_bm25()
         tok = _tokenize(query)
         if not tok:
-            return dense
+            return self._maybe_rerank(query, dense, rerank, top_k)
         scores = bm25.get_scores(tok)
         order = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
 
@@ -141,7 +148,18 @@ class VectorStore:
                 )
             )
 
-        return rrf(dense, keyword_results, k=rrf_k)[:top_k]
+        fused = rrf(dense, keyword_results, k=rrf_k)
+        fused = fused[:reranker_top_k] if rerank else fused[:top_k]
+        return self._maybe_rerank(query, fused, rerank, top_k)
+
+    def _maybe_rerank(self, query, fused, rerank, top_k):
+        if not rerank or not fused:
+            return fused
+        if self._reranker is None:
+            from .reranker import CrossEncoderReranker
+
+            self._reranker = CrossEncoderReranker()
+        return self._reranker.rerank(query, fused, top_k=top_k)
 
     def get_collection_stats(self) -> dict:
         return {"count": self.collection.count()}

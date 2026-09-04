@@ -59,6 +59,8 @@ def run_evaluation(sample: int = 0):
         "llm_model": config.llm.model,
         "top_k": config.rag.top_k,
         "similarity_threshold": config.rag.similarity_threshold,
+        "retrieval_mode": config.rag.retrieval_mode,
+        "rerank": config.rag.rerank,
         "num_questions": len(questions),
     })
 
@@ -89,6 +91,8 @@ def run_evaluation(sample: int = 0):
                         threshold=config.rag.similarity_threshold,
                         keyword_top_k=config.rag.keyword_top_k,
                         rrf_k=config.rag.rrf_k,
+                        rerank=config.rag.rerank,
+                        reranker_top_k=config.rag.reranker_top_k,
                     )
                 ]
             return [

@@ -55,6 +55,7 @@ def _prepare_samples(questions, config, log, cache_path: Path):
                 query=q["query"], query_embedding=query_vec,
                 top_k=config.rag.top_k, threshold=config.rag.similarity_threshold,
                 keyword_top_k=config.rag.keyword_top_k, rrf_k=config.rag.rrf_k,
+                rerank=config.rag.rerank, reranker_top_k=config.rag.reranker_top_k,
             )
         else:
             results = store.search(
