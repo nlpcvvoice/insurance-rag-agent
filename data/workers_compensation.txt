@@ -1,0 +1,31 @@
+# Workers Compensation Insurance Overview
+
+## What Is Workers Compensation?
+
+Workers compensation insurance provides wage replacement and medical benefits to employees who suffer work-related injuries or illnesses. In most states, it is mandatory for employers, and it protects the employer from most liability lawsuits by employees.
+
+## Core Benefits
+
+### Medical Benefits
+Pays for medical treatment, hospital stays, prescription drugs, physical therapy, and rehabilitation associated with the work injury or illness.
+
+### Wage Replacement
+Provides a portion of lost wages, typically two-thirds of the average weekly wage, while the employee cannot work. Benefits are usually subject to weekly minimum and maximum amounts set by state law.
+
+### Disability Categories
+Temporary total, temporary partial, permanent total, and permanent partial disability are the main benefit categories, each with different benefit levels and durations.
+
+### Death Benefits
+Pays funeral expenses and a percentage of wages to the dependents of a worker who dies from a work-related cause.
+
+## How Premiums Are Calculated
+
+Premiums are based on the employer's industry classification, payroll, and claims history. High-risk industries such as construction, manufacturing, and logging have higher rates than office work. A poor experience modification factor (mod rate) from past claims increases premiums.
+
+## What Is Not Covered
+
+Typically excluded are injuries while intoxicated, self-inflicted injuries, willful misconduct, fighting at work, and injuries that occur off the job. Independent contractors are generally not covered under an employer's policy.
+
+## Managing Claims
+
+Prompt reporting of workplace injuries reduces claim costs. Employers must document incidents, direct employees to approved medical providers, and coordinate with the insurer to return workers to work safely.

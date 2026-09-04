@@ -97,7 +97,7 @@ flowchart LR
 | E9 | PII masking + prompt-injection defense | Add | Ref F3.1/3.2 | Insurance compliance (customer PII); enterprise security story for interviews |
 | E10 | pytest + CI regression gate | Add | Ref F0.3/F4.5 | Engineering gap fix; prevents eval regressions; interview talking point |
 | E11 | Prometheus monitoring + cost tracking | Add | Ref F5.4/5.7 | Production observability; latency + token cost already partially tracked in harness |
-| E12 | Expand gold dataset to ~50 QA | Add | Ref F4.1 | Current 10 Q insufficient; 50+ strengthens eval persuasiveness |
+| E12 | Expand gold dataset to ~50 QA | Add | **Done (52 Q, 2026-09-04)** | Current 10 Q insufficient; 50+ strengthens eval persuasiveness |
 
 > Note: E4/E5 confirmed by user. E1-E3 detailed in gap-analysis report. E8-E12 absorbed from 20260904 V2 AIEngineer plan comparison. E1-E3 main line continues as-is; E8-E12 to be integrated at Phase 4.
 
@@ -124,3 +124,16 @@ flowchart LR
 | Empirical (this corpus) | rerank changes top-1 for **1/10** (q9: corrects a malformed BM25 chunk to the right "cyber liability" chunk) |
 
 > Decision: reranker is implemented as an opt-in stage. Like P1, the saturated tiny corpus limits demonstrable change. Value expected on a larger, noisier corpus — conclusive RAGAS comparison deferred until corpus is expanded. Roadmap-verified item closed.
+
+### Data & Gold Dataset Expansion — Result (2026-09-04)
+
+| Item | Before | After |
+|------|--------|-------|
+| Documents | 5 | 15 (10 new: renters, umbrella, commercial auto, E&O, workers comp, commercial property, annuities, disability, flood, travel) |
+| Corpus chunks | 26 | 74 |
+| Benchmark QA | 10 | 52 |
+| Retrieval top1 (dense->hybrid) | saturated 1.00/1.00 | **0.942 -> 0.981** (+0.039) |
+| Retrieval MRR (dense->hybrid) | saturated 1.00/1.00 | **0.962 -> 0.990** (+0.028) |
+| Hybrid fixed / regressed | 0/0 | **2 fixed, 0 regressed** (q27 slip-and-fall->business_liability, q32 E&O->professional_liability) |
+
+> Deliberately added confusable insurance families (liability family, income-replacement, property exclusions) so dense embeddings are no longer trivially separable. Non-saturated retrieval now honestly demonstrates hybrid's value. Rerank recovers BM25 precision@5 loss (0.665->0.692) but stays neutral on top-1. Corpus rebuild is reproducible via `scripts/seed_corpus.py`. E12 closed.

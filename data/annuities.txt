@@ -1,0 +1,31 @@
+# Annuities Overview
+
+## What Is an Annuity?
+
+An annuity is a financial product sold by insurance companies that provides income payments over a period of time, typically for retirement. It is funded with a lump sum or a series of contributions and is designed to provide a steady income stream.
+
+## Types of Annuities
+
+### Immediate vs Deferred
+An immediate annuity begins paying income shortly after a single premium is paid. A deferred annuity accumulates value for years before payments begin, allowing growth during the accumulation phase.
+
+### Fixed Annuities
+A fixed annuity provides a guaranteed rate of return on contributions and a guaranteed income payout. It carries low risk because the insurer promises the rate.
+
+### Variable Annuities
+A variable annuity lets the owner invest in subaccounts resembling mutual funds. Returns and income fluctuate with investment performance, so the owner bears market risk.
+
+### Indexed Annuities
+An indexed annuity earns interest linked to a market index, such as the S&P 500, with a guaranteed minimum return. It balances the guarantees of a fixed annuity with some upside growth potential.
+
+## Annuity Riders and Options
+
+Annuities may include riders such as guaranteed lifetime withdrawal benefits, spousal continuation, and death benefits. Buyers choose payout options including life only, life with a period certain, and joint-and-survivor for couples.
+
+## Tax Treatment
+
+Earnings inside an annuity grow on a tax-deferred basis. Withdrawals before age 59.5 may be subject to a 10% early withdrawal penalty, and ordinary income tax applies to the growth portion of payouts. Contributions are generally made with after-tax dollars.
+
+## Surrender Charges
+
+Many annuities charge a surrender fee if funds are withdrawn early, typically declining over the first several contract years. Understanding surrender periods is important before purchasing, since withdrawals during this window are costly.
