@@ -24,6 +24,8 @@ rag:
   retrieval_mode: hybrid   # dense | hybrid (dense + BM25 fused via RRF)
   keyword_top_k: 10        # BM25 candidates before fusion
   rrf_k: 60                # reciprocal rank fusion constant
+  rerank: false            # enable cross-encoder re-ranking (P2)
+  reranker_top_k: 10       # fused candidates passed to the reranker
 
 # Vector Store Settings
 vectorstore:

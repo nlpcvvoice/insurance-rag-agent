@@ -112,3 +112,15 @@ flowchart LR
 | RAGAS answer_correctness | 0.870->0.747 (10/10 scored); not cleanly attributable either |
 
 > Conclusion: On this tiny 26-chunk corpus, dense already saturates top-1 relevance, so hybrid does not move RAGAS context metrics. The generation-metric deltas are confounded and must not be claimed as hybrid improvements. Hybrid's value is best demonstrated on a larger, term-heavy corpus (defer to later). Roadmap-verified item E1 closed.
+
+### P2 Cross-Encoder Reranker — Result (2026-09-04)
+
+| Item | Detail |
+|------|--------|
+| Model | `cross-encoder/ms-marco-MiniLM-L-6-v2` (CPU-friendly, ~90MB) |
+| Integration | `src/rag/reranker.py` + `VectorStore.search_hybrid(rerank, reranker_top_k)`; wired API + both eval scripts |
+| Default | `rerank: false` (backwards compatible; P1 behavior unchanged) |
+| Tests | `tests/test_reranker.py` (4) + suite = 11/11 pass |
+| Empirical (this corpus) | rerank changes top-1 for **1/10** (q9: corrects a malformed BM25 chunk to the right "cyber liability" chunk) |
+
+> Decision: reranker is implemented as an opt-in stage. Like P1, the saturated tiny corpus limits demonstrable change. Value expected on a larger, noisier corpus — conclusive RAGAS comparison deferred until corpus is expanded. Roadmap-verified item closed.

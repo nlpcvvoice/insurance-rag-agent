@@ -21,6 +21,8 @@ class RAGConfig:
     retrieval_mode: str = "hybrid"
     keyword_top_k: int = 10
     rrf_k: int = 60
+    rerank: bool = False
+    reranker_top_k: int = 10
 
 
 @dataclass
