@@ -36,7 +36,7 @@ api:
 
 # MLOps Settings
 mlops:
-  tracking_uri: ./mlruns
+  tracking_uri: sqlite:///mlflow.db
   experiment_name: insurance-knowledge-assistant
 
 # Logging

@@ -35,11 +35,25 @@ class EmbeddingConfig:
 
 
 @dataclass
+class MLOpsConfig:
+    tracking_uri: str = "sqlite:///mlflow.db"
+    experiment_name: str = "insurance-knowledge-assistant"
+
+
+@dataclass
+class LoggingConfig:
+    level: str = "INFO"
+    format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+
+@dataclass
 class Config:
     llm: LLMConfig
     rag: RAGConfig
     vectorstore: VectorStoreConfig
     embedding: EmbeddingConfig
+    mlops: MLOpsConfig = None
+    logging: LoggingConfig = None
 
     @classmethod
     def from_yaml(cls, config_path: str = "configs/config.yaml") -> "Config":
@@ -51,6 +65,8 @@ class Config:
             rag=RAGConfig(**raw.get("rag", {})),
             vectorstore=VectorStoreConfig(**raw.get("vectorstore", {})),
             embedding=EmbeddingConfig(**raw.get("embedding", {})),
+            mlops=MLOpsConfig(**raw.get("mlops", {})),
+            logging=LoggingConfig(**raw.get("logging", {})),
         )
 
 
