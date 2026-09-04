@@ -18,6 +18,9 @@ class RAGConfig:
     chunk_overlap: int = 50
     top_k: int = 5
     similarity_threshold: float = 0.4
+    retrieval_mode: str = "hybrid"
+    keyword_top_k: int = 10
+    rrf_k: int = 60
 
 
 @dataclass

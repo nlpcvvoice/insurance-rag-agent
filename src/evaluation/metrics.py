@@ -106,7 +106,7 @@ def measure_latency(
 ):
     """Measure retrieval and generation latency in seconds."""
     t0 = time.perf_counter()
-    results = retrieve_fn(query_embedding)
+    results = retrieve_fn(query, query_embedding)
     retrieval_s = time.perf_counter() - t0
 
     t0 = time.perf_counter()

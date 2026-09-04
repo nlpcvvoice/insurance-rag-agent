@@ -81,7 +81,7 @@ flowchart LR
 
 | # | Decision | Direction | Status |
 |---|----------|-----------|--------|
-| E1 | Hybrid retrieval (BM25 + dense) | Add | To evaluate |
+| E1 | Hybrid retrieval (BM25 + dense) | Add | **Implemented** |
 | E2 | Reranker (cross-encoder) | Add | To evaluate |
 | E3 | Citation grounding | Improve | To evaluate |
 | E4 | Eval harness orchestrator | Add (pure orchestration/reuse) | **Confirmed, pending** |
@@ -100,3 +100,15 @@ flowchart LR
 | E12 | Expand gold dataset to ~50 QA | Add | Ref F4.1 | Current 10 Q insufficient; 50+ strengthens eval persuasiveness |
 
 > Note: E4/E5 confirmed by user. E1-E3 detailed in gap-analysis report. E8-E12 absorbed from 20260904 V2 AIEngineer plan comparison. E1-E3 main line continues as-is; E8-E12 to be integrated at Phase 4.
+
+### P1 Hybrid Retrieval — Empirical Result (2026-09-04)
+
+| Finding | Result |
+|---------|--------|
+| Retrieval-level difference | Hybrid genuinely changes top-5 content (overlap 3-5/5); recovers docs dense drops at threshold (q8) |
+| Top-1 context | Identical in 8/10 questions |
+| RAGAS context_recall / context_precision | Unchanged: 0.75 / 0.90 |
+| RAGAS faithfulness / answer_relevancy | 0.699->0.756 / 0.847->0.911, but **NOT attributable to hybrid** (dense vs hybrid answers generated on different days; LLM non-determinism confounds) |
+| RAGAS answer_correctness | 0.870->0.747 (10/10 scored); not cleanly attributable either |
+
+> Conclusion: On this tiny 26-chunk corpus, dense already saturates top-1 relevance, so hybrid does not move RAGAS context metrics. The generation-metric deltas are confounded and must not be claimed as hybrid improvements. Hybrid's value is best demonstrated on a larger, term-heavy corpus (defer to later). Roadmap-verified item E1 closed.

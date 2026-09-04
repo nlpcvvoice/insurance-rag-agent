@@ -151,7 +151,7 @@ curl -X POST http://localhost:8000/query \
 - [x] Dual-track evaluation harness (low-cost + RAGAS 5 metrics)
 - [x] LLM-as-judge with auto-rotation
 - [x] MLflow experiment tracking
-- [ ] Hybrid retrieval (BM25 + dense + RRF)
+- [x] Hybrid retrieval (BM25 + dense + RRF)
 - [ ] Cross-encoder reranker
 - [ ] Citation grounding (real source references)
 - [ ] DeepEval integration (agent/tool-call eval)
