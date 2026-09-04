@@ -50,10 +50,17 @@ def _prepare_samples(questions, config, log, cache_path: Path):
     samples = []
     for i, q in enumerate(questions):
         query_vec = emb.embed_query(q["query"])
-        results = store.search(
-            query_vec, top_k=config.rag.top_k,
-            threshold=config.rag.similarity_threshold,
-        )
+        if config.rag.retrieval_mode == "hybrid":
+            results = store.search_hybrid(
+                query=q["query"], query_embedding=query_vec,
+                top_k=config.rag.top_k, threshold=config.rag.similarity_threshold,
+                keyword_top_k=config.rag.keyword_top_k, rrf_k=config.rag.rrf_k,
+            )
+        else:
+            results = store.search(
+                query_vec, top_k=config.rag.top_k,
+                threshold=config.rag.similarity_threshold,
+            )
         contexts = [r.content for r in results]
         core_context = [contexts[0]] if contexts else []
         answer = generator.generate(query=q["query"], context=contexts).answer

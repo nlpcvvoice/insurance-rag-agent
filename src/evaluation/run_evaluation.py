@@ -78,7 +78,19 @@ def run_evaluation(sample: int = 0):
         query_vec = emb.embed_query(query)
 
         from src.evaluation.metrics import measure_latency
-        def retrieve(v):
+        def retrieve(q, v):
+            if config.rag.retrieval_mode == "hybrid":
+                return [
+                    {"content": r.content, "metadata": r.metadata}
+                    for r in store.search_hybrid(
+                        query=q,
+                        query_embedding=v,
+                        top_k=config.rag.top_k,
+                        threshold=config.rag.similarity_threshold,
+                        keyword_top_k=config.rag.keyword_top_k,
+                        rrf_k=config.rag.rrf_k,
+                    )
+                ]
             return [
                 {"content": r.content, "metadata": r.metadata}
                 for r in store.search(

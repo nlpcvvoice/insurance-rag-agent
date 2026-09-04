@@ -21,6 +21,9 @@ rag:
   chunk_overlap: 50
   top_k: 5
   similarity_threshold: 0.4
+  retrieval_mode: hybrid   # dense | hybrid (dense + BM25 fused via RRF)
+  keyword_top_k: 10        # BM25 candidates before fusion
+  rrf_k: 60                # reciprocal rank fusion constant
 
 # Vector Store Settings
 vectorstore:
