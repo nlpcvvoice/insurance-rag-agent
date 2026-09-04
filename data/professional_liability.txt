@@ -1,0 +1,28 @@
+# Professional Liability Insurance (E&O) Overview
+
+## What Is Professional Liability Insurance?
+
+Professional liability insurance, also called errors and omissions (E&O) coverage, protects professionals against claims of negligence, mistakes, or failure to perform their professional duties. It is distinct from general liability insurance, which covers bodily injury and property damage rather than professional services errors.
+
+## Who Needs E&O Coverage
+
+E&O coverage is standard for consultants, accountants, attorneys, architects, engineers, IT and software firms, real estate agents, and financial advisors. These professionals give advice or produce work products where a mistake can cause a client financial loss.
+
+## What It Covers
+
+### Negligence and Errors
+Covers defense costs and settlements when a client claims the professional's error, omission, or negligent advice caused financial harm.
+
+### Duty to Defend
+The insurer typically provides a defense attorney and pays legal costs even if the claim is groundless, up to the policy limit.
+
+### Prior Acts and Tail Coverage
+A claims-made policy covers claims reported during the policy period. Prior acts coverage protects against errors that occurred before the policy started. Tail coverage extends protection for work done before the policy is canceled.
+
+## Common Exclusions
+
+E&O policies generally exclude criminal acts, intentional wrongdoing, fraud, and claims covered by other policies such as workers compensation or general liability.
+
+## Claims-Made vs Occurrence
+
+E&O policies are typically written on a claims-made basis, meaning the claim must be reported while the policy is active. This differs from occurrence-type policies that respond to events that happened during the policy period regardless of when the claim is filed.

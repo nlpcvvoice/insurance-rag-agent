@@ -74,18 +74,20 @@ insurance-rag-agent/
 │   ├── rag/               # RAG pipeline
 │   │   ├── ingestion.py   # document loading & chunking
 │   │   ├── embedding.py   # embedding abstraction (Vertex/local)
-│   │   ├── retrieval.py   # ChromaDB vector store & search
+│   │   ├── retrieval.py   # ChromaDB vector store & search (dense/hybrid)
+│   │   ├── reranker.py    # optional cross-encoder reranker
 │   │   └── generation.py  # LLM answer generation
 │   ├── evaluation/        # dual-track eval harness
 │   │   ├── harness.py             # orchestrator (low-cost + RAGAS)
 │   │   ├── run_evaluation.py      # low-cost metrics
 │   │   ├── run_ragas_evaluation.py# RAGAS LLM-judge metrics
 │   │   ├── metrics.py             # low-cost metric functions
-│   │   └── benchmark_questions.py # 10-question golden set
+│   │   └── benchmark_questions.py # 52-question golden set
 │   ├── mlops/
 │   │   ├── tracking.py            # MLflow ExperimentTracker wrapper
 │   │   └── logging_setup.py       # structured logging
 │   └── config.py           # type-safe config loading
+├── scripts/seed_corpus.py  # reproducibly rebuild ChromaDB from data/
 ├── configs/config.yaml    # YAML configuration
 ├── data/                  # sample insurance documents
 └── tests/                 # unit & integration tests
@@ -159,7 +161,7 @@ curl -X POST http://localhost:8000/query \
 - [ ] pytest + CI regression gate
 - [ ] Prometheus monitoring + cost tracking
 - [ ] Docker + Cloud Run deployment
-- [ ] Expand golden dataset to ~50 QA pairs
+- [x] Expand golden dataset to 52 QA pairs
 
 ## License
 
