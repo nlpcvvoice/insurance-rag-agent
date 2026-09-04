@@ -3,6 +3,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional
 import uvicorn
+import time
 from pathlib import Path
 
 from src.config import load_config
@@ -10,6 +11,8 @@ from src.rag.ingestion import DocumentLoader
 from src.rag.embedding import get_embedding_provider
 from src.rag.retrieval import VectorStore
 from src.rag.generation import LLMGenerator
+from src.mlops.logging_setup import setup_logging, get_logger
+from src.mlops.tracking import ExperimentTracker
 
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5 MB
 
@@ -21,6 +24,9 @@ app = FastAPI(
 )
 
 config = load_config()
+setup_logging(config.logging.level, "tmp/logs/api.log")
+log = get_logger()
+
 loader = DocumentLoader(
     chunk_size=config.rag.chunk_size,
     chunk_overlap=config.rag.chunk_overlap,
@@ -36,6 +42,15 @@ vector_store = VectorStore(
 generator = LLMGenerator(
     model=config.llm.model,
     temperature=config.llm.temperature,
+)
+
+# lightweight request counter (in-memory) for monitoring
+_request_counter = {"queries": 0, "uploads": 0, "errors": 0}
+
+# experiment tracker (MLflow) - optional, non-fatal if unavailable
+tracker = ExperimentTracker(
+    tracking_uri=config.mlops.tracking_uri,
+    experiment_name=config.mlops.experiment_name,
 )
 
 
@@ -65,7 +80,11 @@ def root():
 @app.get("/health")
 def health():
     stats = vector_store.get_collection_stats()
-    return {"status": "healthy", "documents": stats["count"]}
+    return {
+        "status": "healthy",
+        "documents": stats["count"],
+        "monitor": dict(_request_counter),
+    }
 
 
 @app.post("/upload", response_model=IngestResponse)
@@ -97,19 +116,28 @@ async def upload_document(file: UploadFile = File(...)):
         ]
         vector_store.add_documents(doc_dicts, embeddings)
 
+        _request_counter["uploads"] += 1
+        log.info(f"uploaded '{filename}' -> {len(documents)} chunks")
+
         return IngestResponse(
             message=f"Successfully uploaded '{filename}'",
             num_chunks=len(documents),
             documents_count=vector_store.get_collection_stats()["count"],
         )
     except (ValueError, ImportError) as e:
+        _request_counter["errors"] += 1
+        log.warning(f"upload rejected: {e}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        _request_counter["errors"] += 1
+        log.exception(f"upload failed: {filename}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/query", response_model=QueryResponse)
 def query(request: QueryRequest):
+    _request_counter["queries"] += 1
+    start = time.perf_counter()
     try:
         query_embedding = embedding_provider.embed_query(request.query)
         results = vector_store.search(
@@ -124,12 +152,20 @@ def query(request: QueryRequest):
             context=contexts,
         )
 
+        elapsed = time.perf_counter() - start
+        log.info(
+            f"query='{request.query[:60]}' results={len(results)} "
+            f"latency={elapsed:.3f}s"
+        )
+
         return QueryResponse(
             answer=generation_result.answer,
             sources=[result.metadata.get("source", "") for result in results],
             model=config.llm.model,
         )
     except Exception as e:
+        _request_counter["errors"] += 1
+        log.exception(f"query failed: {request.query[:60]}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

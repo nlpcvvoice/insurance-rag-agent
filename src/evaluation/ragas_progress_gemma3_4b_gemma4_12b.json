@@ -1,0 +1,22 @@
+{
+  "q0_faithfulness": 0.6,
+  "q1_faithfulness": 1.0,
+  "q2_faithfulness": 1.0,
+  "q3_faithfulness": 1.0,
+  "q4_faithfulness": 0.4444444444444444,
+  "q5_faithfulness": 0.7692307692307693,
+  "q6_faithfulness": 0.0,
+  "q7_faithfulness": 1.0,
+  "q8_faithfulness": 0.75,
+  "q9_faithfulness": 1.0,
+  "q0_answer_relevancy": 0.7563422267371567,
+  "q1_answer_relevancy": 0.9271953805470594,
+  "q2_answer_relevancy": 0.87971489205571,
+  "q3_answer_relevancy": 0.9999999999999426,
+  "q4_answer_relevancy": 0.633757064572797,
+  "q5_answer_relevancy": 0.9729941762811779,
+  "q6_answer_relevancy": 0.9120417560715084,
+  "q7_answer_relevancy": 0.9211380067234485,
+  "q8_answer_relevancy": 0.5783443733861925,
+  "q9_answer_relevancy": 0.9999999999999377
+}
