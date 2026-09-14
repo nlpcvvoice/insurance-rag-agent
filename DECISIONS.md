@@ -47,7 +47,7 @@ flowchart LR
 | C3 | Low-cost metrics | hit_rate/MRR/precision@k/recall@k + ROUGE/BERTScore | — | No LLM, sub-second, CI-friendly |
 | C4 | RAGAS metrics | faithfulness / answer_relevancy / context_recall / context_precision / answer_correctness | — | Covers 4 failure layers (retrieval + generation) |
 | C5 | Judge backend | Ollama local + OpenRouter free | GCP Gemini | Avoid credit; local gemma / free cloud |
-| C6 | Judge policy | Fixed primary + auto-rotate on failure | Fixed only | Primary minimax-m3:free; rotate to gemma/glm/nemotron |
+| C6 | Judge policy | Fixed primary + auto-rotate on failure | Fixed only | Primary ling-3.0-flash-sante; rotate to nemotron/gemma |
 | C7 | Resumability | Per-question progress JSON | One-shot | Long jobs (13h local) resume across restarts |
 | C8 | Result tracking | MLflow (SQLite local) | Cloud MLflow | Free; sufficient for single machine |
 | C9 | Context metric mode | context_recall with top1 | full top_k | Baseline; compare mode available later |
@@ -57,20 +57,20 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    P["Primary minimax-m3:free"] -->|"402/502 failure"| R["Auto-rotate<br/>glm-5.2 / gemma-4-31b / nemotron"]
+    P["Primary ling-3.0-flash-sante:free"] -->|"402/502 failure"| R["Auto-rotate<br/>nemotron-3.5 / gemma-4-31b / nemotron-3-super"]
     P -->|"success"| N["Next question back to primary"]
     R -->|"success"| N
 ```
 
 ---
 
-## D. Failures Encountered (discussion points)
+## D. Operational Failures & Mitigations
 
 | # | Wall hit | Symptom | Fix |
 |---|----------|---------|-----|
 | D-fail-1 | RAGAS 0.4.3 dependency | Required downgraded langchain stack | Pinned langchain 0.3.x |
 | D-fail-2 | gemma4:12b faithfulness | Long JSON truncated on CPU -> endless loop | Switched to gemma3:4b / cloud |
-| D-fail-3 | openrouter/free random routing | Safety rejection / 1gen vs 3gen | Fixed model minimax-m3:free |
+| D-fail-3 | openrouter/free random routing | Safety rejection / 1gen vs 3gen | Fixed model (ling-3.0-flash-sante:free) |
 | D-fail-4 | Free endpoint quota | 402 Insufficient balance / 502 | Auto-rotate to other free models |
 | D-fail-5 | AnswerSimilarity unset | "AnswerSimilarity must be set" | Explicitly inject judge_emb |
 | D-fail-6 | Local 13.5h wall-clock | 40-80 min per question | Cloud free models ~190x faster |
@@ -89,17 +89,17 @@ flowchart LR
 | E6 | Deploy Docker + Cloud Run | Phase 4 | Pending |
 | E7 | CI regression gate | Phase 4 | Deferred |
 
-### F. Absorbed from Reference Plan (20260904 — V2 AIEngineer plan comparison)
+### F. Phase 4 Integrations
 
-| # | Decision | Choice | Source | Rationale |
-|---|----------|--------|--------|-----------|
-| E8 | DeepEval integration | Add alongside RAGAS | Ref F4.3 | Agent/tool-call eval beyond RAGAS; core AI-Engineer differentiator; completes eval coverage |
-| E9 | PII masking + prompt-injection defense | Add | Ref F3.1/3.2 | Insurance compliance (customer PII); enterprise security story |
-| E10 | pytest + CI regression gate | Add | Ref F0.3/F4.5 | Engineering gap fix; prevents eval regressions; technical talking point |
-| E11 | Prometheus monitoring + cost tracking | Add | Ref F5.4/5.7 | Production observability; latency + token cost already partially tracked in harness |
-| E12 | Expand gold dataset to ~50 QA | Add | **Done (52 Q, 2026-09-04)** | Current 10 Q insufficient; 50+ strengthens eval persuasiveness |
+| # | Decision | Choice | Rationale |
+|---|----------|--------|-----------|
+| E8 | DeepEval integration | Add alongside RAGAS | Agent/tool-call eval beyond RAGAS; completes eval coverage |
+| E9 | PII masking + prompt-injection defense | Add | Insurance compliance (customer PII); enterprise security requirement |
+| E10 | pytest + CI regression gate | Add | Engineering gap fix; prevents eval regressions |
+| E11 | Prometheus monitoring + cost tracking | Add | Production observability; latency + token cost already partially tracked in harness |
+| E12 | Expand gold dataset to ~50 QA | **Done** (52 Q, 2026-09-04) | Current 10 Q insufficient; 50+ completed |
 
-> Note: E4/E5 confirmed by user. E1-E3 detailed in gap-analysis report. E8-E12 absorbed from 20260904 V2 AIEngineer plan comparison. E1-E3 main line continues as-is; E8-E12 to be integrated at Phase 4.
+E1-E3 detailed in gap-analysis report. E1-E3 main line continues as-is; E8-E12 to be integrated at Phase 4.
 
 ### P1 Hybrid Retrieval — Empirical Result (2026-09-04)
 
@@ -137,3 +137,18 @@ flowchart LR
 | Hybrid fixed / regressed | 0/0 | **2 fixed, 0 regressed** (q27 slip-and-fall->business_liability, q32 E&O->professional_liability) |
 
 > Deliberately added confusable insurance families (liability family, income-replacement, property exclusions) so dense embeddings are no longer trivially separable. Non-saturated retrieval now honestly demonstrates hybrid's value. Rerank recovers BM25 precision@5 loss (0.665->0.692) but stays neutral on top-1. Corpus rebuild is reproducible via `scripts/seed_corpus.py`. E12 closed.
+
+### S1 Shared Keyed Sample-Artifact — Result (2026-09-05)
+
+| Item | Detail |
+|------|--------|
+| Problem | Two eval tracks generated Gemini answers separately (2x cost, inconsistent scores); `ragas_samples.json` was reused blindly -> stale-cache bug (would have silently scored only 10 of 52) |
+| Fix | `src/evaluation/sample_artifact.py`: one artifact per key (benchmark digest + corpus digest + retrieval config + generator); `load_samples` validates count + fields; atomic `save_samples` |
+| Wiring | `run_evaluation.py` generates on cache miss + persists; `run_ragas_evaluation.py` reuses artifact with zero re-generation/re-retrieval; progress files now keyed by artifact digest too |
+| Consistency | both tracks score the SAME user_input/response; retrieved_contexts = core top-1 (unchanged `core_top1` mode) |
+| Honesty | warm-run `avg_generation_s` -> `nan` (latency NOT measured, not faked); `samples_reused` logged to MLflow |
+| Tests | `tests/test_sample_artifact.py` (12) + suite = 23/23 pass |
+| Smoke | 2-Q cold run generated+persisted; warm rerun `questions_generated: 0` with identical rouge/bert; RAGAS `_prepare_samples` reused=True on same key |
+| Artifacts | `samples_*.json` + progress now gitignored (regenerable); stale 10-Q `ragas_samples.json` moved to `tmp/stale_pre_s1/` |
+
+> Decision: generation is now a preparation step decoupled from scoring. This hardens eval methodology (S1 of the production-readiness roadmap) and unblocks the 52-Q RAGAS 3-way comparison (dense/hybrid/rerank) with zero re-generation. E13 opened -> will be closed by the 52-Q RAGAS run.

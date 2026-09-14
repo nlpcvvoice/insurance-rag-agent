@@ -1,5 +1,7 @@
 # Insurance Knowledge Assistant
 
+[![CI](https://github.com/nlpcvvoice/insurance-rag-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/nlpcvvoice/insurance-rag-agent/actions/workflows/ci.yml)
+
 Production-style **Retrieval-Augmented Generation (RAG)** knowledge assistant with a **dual-track LLM evaluation harness**, **MLOps (MLflow)** experiment tracking, and production-observability design — built for the **Claims and Service DS Knowledge & Development Solutions (KDS)** use case.
 
 > Turns insurance documents (PDF/TXT) into grounded, auditable Q&A with quantified retrieval + generation quality.
@@ -45,13 +47,13 @@ Production-style **Retrieval-Augmented Generation (RAG)** knowledge assistant wi
 |-----------|-----------|
 | API | FastAPI (Python) |
 | Generator LLM | Vertex AI Gemini 2.5 Flash / OpenRouter |
-| Judge LLM | Ollama (local gemma3) / OpenRouter (minimax-m3:free) |
+| Judge LLM | Ollama (local gemma3) / OpenRouter (inclusionai ling-3.0-flash-sante:free) |
 | Embeddings | sentence-transformers (local) / Vertex AI |
 | Vector DB | ChromaDB |
 | Evaluation | Low-cost custom metrics + RAGAS 0.4.3 |
 | MLOps / tracking | MLflow (SQLite local) |
 
-## Key Skills Demonstrated (ATS keywords)
+## Key Skills Demonstrated
 
 RAG · retrieval-augmented generation · chunking · embeddings · semantic search · hybrid search · vector database · ChromaDB · LLM application development · prompt engineering · structured output · function calling · LLM-as-a-judge · RAGAS · evaluation / evals · faithfulness · context precision · context recall · answer relevancy · answer correctness · MRR · recall@k · precision@k · ROUGE · BERTScore · retrieval quality metrics · regression testing · MLOps · MLflow · experiment tracking · model evaluation · observability · model monitoring · LLMOps · metadata · FastAPI · REST API · Python · Pydantic · YAML configuration · TypeScript · testability · golden dataset · benchmark
 
@@ -96,15 +98,15 @@ insurance-rag-agent/
 ## Run the Evaluation Harness
 
 ```bash
-# Low-cost + RAGAS dual-track, LLM judge from OpenRouter (minimax-m3:free)
+# Low-cost + RAGAS dual-track, LLM judge from OpenRouter (inclusionai ling-3.0-flash-sante:free)
 python -m src.evaluation.harness --backend openrouter --sample 10
 
 # Low-cost only
 python -m src.evaluation.run_evaluation --sample 10
 
-# RAGAS LLM-judge with explicit model + context mode
-python -m src.evaluation.run_ragas_evaluation --backend openrouter \
-    --judge minimax/minimax-m3:free --ctx-mode top1
+# RAGAS LLM-judge with explicit model
+python -m src.evaluation.run_ragas_evaluation --judge-backend openrouter \
+    --judge inclusionai/ling-3.0-flash-sante:free
 ```
 
 Results are recorded to MLflow (`sqlite:///mlflow.db`); launch `mlflow ui` to inspect runs.
@@ -162,6 +164,7 @@ curl -X POST http://localhost:8000/query \
 - [ ] Prometheus monitoring + cost tracking
 - [ ] Docker + Cloud Run deployment
 - [x] Expand golden dataset to 52 QA pairs
+- [x] Shared keyed sample artifact (one generation -> both eval tracks) [+DOC: sample-artifact refactor]
 
 ## License
 

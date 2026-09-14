@@ -8,8 +8,8 @@ llm:
   max_tokens: 1024
 
 # Embedding Settings
-# provider: local  → 本地免费，不消耗GCP credit（推荐用于向量库构建）
-# provider: vertexai → 云端，消耗GCP credit
+# provider: local    -> free, no GCP credit (recommended for building the vector store)
+# provider: vertexai -> cloud, consumes GCP credit
 embedding:
   provider: local
   model: all-MiniLM-L6-v2
