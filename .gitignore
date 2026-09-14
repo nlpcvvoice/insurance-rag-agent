@@ -223,3 +223,7 @@ data/chroma_db/
 mlruns/
 mlflow.db
 .chroma/
+
+# Regenerable eval caches (keyed sample artifacts + judge progress)
+src/evaluation/samples_*.json
+src/evaluation/ragas_progress_*.json

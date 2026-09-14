@@ -1,9 +1,11 @@
 """RAGAS LLM-as-Judge evaluation using a local Ollama model (resumable).
 
 Flow:
-1. For each benchmark question, run our RAG pipeline (local embedding retrieval
-   + Gemini generation) to obtain retrieved contexts and the generated answer.
-   These prepared samples are cached to disk so a restart does not re-run Gemini.
+1. Prepared samples (retrieved contexts + generated answer) come from the
+   shared, keyed sample artifact. If a valid artifact exists for the current
+   key (retrieval mode, corpus, benchmark, generator) it is reused with zero
+   re-generation; otherwise our RAG pipeline (local embedding retrieval +
+   Gemini generation) builds it and persists it for both eval tracks.
 2. Score faithfulness + answer_relevancy with RAGAS, using a local Ollama
    model as the judge LLM (0 GCP credit).
 3. Persist progress after every question (resumable) and log to MLflow.
@@ -28,13 +30,27 @@ from src.rag.generation import LLMGenerator
 from src.mlops.logging_setup import setup_logging, get_logger
 from src.mlops.tracking import ExperimentTracker
 from src.evaluation.benchmark_questions import BENCHMARK_QUESTIONS
+from src.evaluation.sample_artifact import (
+    load_samples,
+    save_samples,
+    samples_path,
+    sample_digest,
+    sample_key,
+)
 
 
-def _prepare_samples(questions, config, log, cache_path: Path):
-    """Build per-question prepared samples (answer + core context), cached."""
-    if cache_path.exists():
-        log.info(f"Loading prepared samples from cache: {cache_path}")
-        return json.loads(cache_path.read_text())
+def _prepare_samples(questions, config, log):
+    """Return (samples, artifact_path, reused) for the current key.
+
+    Reuses a valid keyed artifact when present (validated count + fields);
+    otherwise runs the RAG pipeline once, persists the artifact incrementally
+    and returns reused=False so callers can log it.
+    """
+    path = samples_path(config, questions)
+    cached = load_samples(path, questions)
+    if cached is not None:
+        log.info(f"Reusing prepared samples from keyed artifact: {path.name}")
+        return cached, path, True
 
     emb = get_embedding_provider(
         provider=config.embedding.provider, model=config.embedding.model,
@@ -72,9 +88,9 @@ def _prepare_samples(questions, config, log, cache_path: Path):
             "reference": q.get("reference", ""),
         })
         log.info(f"Prepared sample {i + 1}/{len(questions)}")
-        cache_path.write_text(json.dumps(samples))  # incremental persist
+        save_samples(path, samples)  # incremental persist
 
-    return samples
+    return samples, path, False
 
 
 def run_ragas_evaluation(
@@ -82,6 +98,7 @@ def run_ragas_evaluation(
     judge_model: str = None,
     judge_relevancy: str = None,
     judge_backend: str = "ollama",
+    config_path: str = None,
 ):
     import os
     import warnings
@@ -97,7 +114,7 @@ def run_ragas_evaluation(
     except Exception:
         pass
 
-    config = load_config()
+    config = load_config(config_path)
     log = setup_logging(config.logging.level, "tmp/logs/ragas_evaluation.log")
 
     # Resolve judge models: explicit CLI arg wins, else env default (openrouter)
@@ -114,8 +131,8 @@ def run_ragas_evaluation(
     if sample > 0:
         questions = questions[:sample]
 
-    cache_path = Path(__file__).resolve().parent / "ragas_samples.json"
-    samples = _prepare_samples(questions, config, log, cache_path)
+    samples, artifact_path, reused = _prepare_samples(questions, config, log)
+    digest = sample_digest(config, questions)
 
     from langchain_ollama import ChatOllama
     from langchain_openai import ChatOpenAI
@@ -209,13 +226,21 @@ def run_ragas_evaluation(
         "metrics": "faithfulness,answer_relevancy",
         "num_questions": len(questions),
         "context_mode": "core_top1",
+        "sample_artifact": artifact_path.name,
+        "sample_artifact_digest": digest,
+        "samples_reused": reused,
+        "benchmark_digest": sample_key(config, questions)["benchmark_digest"],
+        "corpus_digest": sample_key(config, questions)["corpus_digest"],
+        "retrieval_mode": config.rag.retrieval_mode,
+        "rerank": config.rag.rerank,
     })
 
-    # Progress persistence
+    # Progress persistence (keyed by judge + artifact digest so a stale
+    # progress file can never be reused for a different corpus/benchmark)
     import re
     def _slug(s):
         return re.sub(r'[^A-Za-z0-9_.-]', '_', s)
-    progress_path = Path(__file__).resolve().parent / f"ragas_progress_{_slug(judge_model)}_{_slug(judge_relevancy)}.json"
+    progress_path = Path(__file__).resolve().parent / f"ragas_progress_{_slug(judge_model)}_{_slug(judge_relevancy)}_{digest}.json"
     progress = {}
     if progress_path.exists():
         progress = json.loads(progress_path.read_text())
@@ -242,7 +267,7 @@ def run_ragas_evaluation(
     # of the primary judge model. Rotation is transient: on the *next* question
     # we always go back to the primary model (judge_model) if it succeeds.
     FALLBACK_MODELS = (
-        "z-ai/glm-5.2:free",
+        "nvidia/nemotron-3.5-lightning:free",
         "google/gemma-4-31b-it:free",
         "nvidia/nemotron-3-super-120b-a12b:free",
     ) if judge_backend == "openrouter" else ()
@@ -319,10 +344,13 @@ if __name__ == "__main__":
                         help="judge model for answer_relevancy (defaults to --judge)")
     parser.add_argument("--judge-backend", choices=["ollama", "openrouter"], default="ollama",
                         help="judge LLM backend (default: ollama local)")
+    parser.add_argument("--config", default=None,
+                        help="path to a YAML config file (default: configs/config.yaml)")
     args = parser.parse_args()
     run_ragas_evaluation(
         sample=args.sample,
         judge_model=args.judge,
         judge_relevancy=args.judge_relevancy,
         judge_backend=args.judge_backend,
+        config_path=args.config,
     )

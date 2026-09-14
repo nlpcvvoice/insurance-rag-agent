@@ -1,6 +1,12 @@
-"""Run the RAG benchmark and log aggregated metrics to MLflow."""
+"""Run the RAG benchmark and log aggregated metrics to MLflow.
+
+Also persists the generated samples into the shared, keyed sample artifact
+so the RAGAS track can score the SAME answers with zero re-generation.
+Answers from a valid existing artifact are reused (no Gemini call)."""
 import sys
+import argparse
 from pathlib import Path
+from typing import Optional
 
 # Make project root importable when run as a script
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
@@ -21,10 +27,17 @@ from src.evaluation.metrics import (
     answer_bertscore,
 )
 from src.evaluation.benchmark_questions import BENCHMARK_QUESTIONS
+from src.evaluation.sample_artifact import (
+    load_samples,
+    save_samples,
+    samples_path,
+    sample_digest,
+    sample_key,
+)
 
 
-def run_evaluation(sample: int = 0):
-    config = load_config()
+def run_evaluation(sample: int = 0, config_path: Optional[str] = None):
+    config = load_config(config_path)
     log = setup_logging(config.logging.level, "tmp/logs/evaluation.log")
 
     emb = get_embedding_provider(
@@ -44,6 +57,8 @@ def run_evaluation(sample: int = 0):
     if sample > 0:
         questions = questions[:sample]
 
+    artifact_path = samples_path(config, questions)
+    cached = load_samples(artifact_path, questions)
     tracker = ExperimentTracker(
         tracking_uri=config.mlops.tracking_uri,
         experiment_name=config.mlops.experiment_name,
@@ -62,6 +77,11 @@ def run_evaluation(sample: int = 0):
         "retrieval_mode": config.rag.retrieval_mode,
         "rerank": config.rag.rerank,
         "num_questions": len(questions),
+        "sample_artifact": artifact_path.name,
+        "sample_artifact_digest": sample_digest(config, questions),
+        "samples_reused": cached is not None,
+        "benchmark_digest": sample_key(config, questions)["benchmark_digest"],
+        "corpus_digest": sample_key(config, questions)["corpus_digest"],
     })
 
     total_hit = 0.0
@@ -74,10 +94,15 @@ def run_evaluation(sample: int = 0):
     total_bertscore = 0.0
     total_retrieval_s = 0.0
     total_generation_s = 0.0
+    n_generated = 0
+
+    shared = []
 
     for i, q in enumerate(questions):
         query = q["query"]
         query_vec = emb.embed_query(query)
+
+        cached_answer = cached[i]["response"] if cached is not None else None
 
         from src.evaluation.metrics import measure_latency
         def retrieve(q, v):
@@ -104,6 +129,8 @@ def run_evaluation(sample: int = 0):
                 )
             ]
         def generate(query_, contexts_):
+            if cached_answer is not None:
+                return cached_answer
             return generator.generate(query=query_, context=contexts_).answer
 
         try:
@@ -111,7 +138,20 @@ def run_evaluation(sample: int = 0):
         except Exception as e:
             log.warning(f"Question {i} failed (no context?): {e}")
             tracker.log_metrics({f"q{i}_hit": 0.0, f"q{i}_rouge": 0.0})
+            shared.append({
+                "user_input": query,
+                "response": "",
+                "retrieved_contexts": [],
+                "reference": q.get("reference", ""),
+            })
             continue
+
+        shared.append({
+            "user_input": query,
+            "response": lat["answer"],
+            "retrieved_contexts": [lat["retrieved"][0]["content"]] if lat["retrieved"] else [],
+            "reference": q.get("reference", ""),
+        })
 
         hit = retrieval_hit_rate(lat["retrieved"], q["expected_source"])
         hit3 = hit_rate_at_k(lat["retrieved"], q["expected_source"], k=3)
@@ -132,7 +172,11 @@ def run_evaluation(sample: int = 0):
         total_rouge += rouge
         total_bertscore += bs
         total_retrieval_s += lat["retrieval_s"]
-        total_generation_s += lat["generation_s"]
+        if cached_answer is None:
+            # generation latency is only real when we actually generated;
+            # reused answers (warm run) do not count toward generation stats
+            total_generation_s += lat["generation_s"]
+            n_generated += 1
 
         log.info(
             f"Q{i}: hit={hit} mrr={mr:.2f} prec@5={prec5:.2f} "
@@ -163,9 +207,19 @@ def run_evaluation(sample: int = 0):
         "avg_answer_rougeL": total_rouge / n,
         "avg_answer_bertscore": total_bertscore / n,
         "avg_retrieval_s": total_retrieval_s / n,
-        "avg_generation_s": total_generation_s / n,
-        "avg_total_s": (total_retrieval_s + total_generation_s) / n,
+        "avg_generation_s": total_generation_s / n_generated if n_generated else float("nan"),
+        "avg_total_s": (total_retrieval_s / n) + (total_generation_s / n_generated if n_generated else float("nan")),
+        "questions_generated": n_generated,
     }
+
+    if cached is None:
+        # No valid artifact existed: persist what we just generated so the
+        # RAGAS track can score these SAME answers later without re-generating.
+        save_samples(artifact_path, shared)
+        log.info(f"Persisted shared sample artifact: {artifact_path.name}")
+    else:
+        log.info(f"Reused cached answers from artifact: {artifact_path.name}")
+
     tracker.log_metrics(agg)
     tracker.end_run()
 
@@ -174,7 +228,12 @@ def run_evaluation(sample: int = 0):
 
 
 if __name__ == "__main__":
-    sample = int(sys.argv[1]) if len(sys.argv) > 1 else 0
-    agg = run_evaluation(sample=sample)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--sample", type=int, default=0,
+                        help="number of questions (0 = all)")
+    parser.add_argument("--config", default=None,
+                        help="path to a YAML config file (default: configs/config.yaml)")
+    args = parser.parse_args()
+    agg = run_evaluation(sample=args.sample, config_path=args.config)
     for k, v in agg.items():
         print(f"{k}: {v:.4f}" if isinstance(v, float) else f"{k}: {v}")
